@@ -1,0 +1,328 @@
+"C:\Users\leons\AndroidStudioProjects\MyApplication\build.gradle.kts"
+
+plugins {
+    alias(libs.plugins.android.application) apply false
+    alias(libs.plugins.kotlin.android)      apply false
+    alias(libs.plugins.kotlin.compose)      apply false    //  ← neu/prüfen
+}
+
+----------------------------------------------------------
+
+"C:\Users\leons\AndroidStudioProjects\MyApplication\gradle\libs.versions.toml"
+
+[versions]
+agp = "8.4.0"
+kotlin = "2.0.0"
+coreKtx = "1.10.1"
+junit = "4.13.2"
+junitVersion = "1.1.5"
+espressoCore = "3.5.1"
+lifecycleRuntimeKtx = "2.6.1"
+activityCompose = "1.8.0"
+composeBom = "2024.09.00"
+
+[libraries]
+androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
+androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
+androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
+androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
+androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
+androidx-ui = { group = "androidx.compose.ui", name = "ui" }
+androidx-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
+androidx-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
+androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
+androidx-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
+androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
+androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+
+---------------------------------------
+
+
+"C:\Users\leons\AndroidStudioProjects\MyApplication\app\build.gradle.kts"
+
+plugins {
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.compose)
+}
+
+android {
+    namespace = "com.example.speechtranslate"
+    compileSdk = 36
+
+    defaultConfig {
+        applicationId = "com.example.speechtranslate"
+        minSdk = 24
+        targetSdk = 36
+        versionCode = 1
+        versionName = "1.0"
+
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            isMinifyEnabled = false
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+        }
+    }
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
+    }
+    kotlinOptions {
+        jvmTarget = "11"
+    }
+    buildFeatures {
+        compose = true
+    }
+}
+
+dependencies {
+
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.activity.compose)
+    implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.androidx.ui)
+    implementation(libs.androidx.ui.graphics)
+    implementation(libs.androidx.ui.tooling.preview)
+    implementation(libs.androidx.material3)
+    testImplementation(libs.junit)
+    androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.androidx.espresso.core)
+    androidTestImplementation(platform(libs.androidx.compose.bom))
+    androidTestImplementation(libs.androidx.ui.test.junit4)
+    debugImplementation(libs.androidx.ui.tooling)
+    debugImplementation(libs.androidx.ui.test.manifest)
+}
+
+-------------------------------------------------
+
+"C:\Users\leons\AndroidStudioProjects\MyApplication\app\src\main\res\values\themes.xml"
+
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="Theme.MyApplication" parent="android:Theme.Material.Light.NoActionBar" />
+</resources>
+
+-------------------------------------------------
+
+"C:\Users\leons\AndroidStudioProjects\MyApplication\app\src\main\AndroidManifest.xml"
+
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.example.speechtranslate">
+
+    <!-- =================  Laufzeit­berechtigungen  ================= -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+    <uses-permission android:name="android.permission.INTERNET"/>
+
+    <!-- ============================================================= -->
+    <application
+        android:allowBackup="true"
+        android:label="@string/app_name"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:theme="@style/Theme.MyApplication">
+
+        <!-- Launcher‑Activity -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="true">
+
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+
+        </activity>
+    </application>
+</manifest>
+
+
+----------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+"C:\Users\leons\AndroidStudioProjects\MyApplication\app\src\main\java\com\example\speechtranslate\MainActivity.kt"
+
+package com.example.speechtranslate      // ← ggf. anpassen
+
+import android.Manifest
+import android.content.pm.PackageManager
+import android.media.*
+import android.os.Bundle
+import android.util.Log
+import android.widget.Toast
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.core.content.ContextCompat
+import kotlinx.coroutines.*
+import java.io.ByteArrayOutputStream
+import java.io.DataInputStream
+import java.io.DataOutputStream
+import java.net.InetSocketAddress
+import java.net.Socket
+import java.net.SocketException
+
+/* ───────── Verbindungs‑Konstanten ───────── */
+private const val HOST      = "192.168.2.106"   // IP deines PCs
+private const val PORT      = 6000
+private const val REC_SR    = 16_000            // Aufnahme‑Rate (Whisper)
+private const val PLAY_SR   = 48_000            // Wiedergabe‑Rate (Silero)
+
+class MainActivity : ComponentActivity() {
+
+    /* Mic‑Permission */
+    private val askMic = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) startWorkflow()
+        else Toast.makeText(this, "Mikrofon verweigert!", Toast.LENGTH_LONG).show()
+    }
+
+    private val scope = CoroutineScope(Dispatchers.Default)
+    @Volatile private var updateUi: (String) -> Unit = {}
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        /* Minimal‑UI: nur Status‑Text */
+        setContent {
+            var status by remember { mutableStateOf("Initialising…") }
+            SideEffect { updateUi = { status = it } }
+
+            Surface(Modifier.fillMaxSize()) {
+                Box(contentAlignment = Alignment.Center) {
+                    Text(status, style = MaterialTheme.typography.headlineMedium)
+                }
+            }
+        }
+
+        if (ContextCompat.checkSelfPermission(
+                this, Manifest.permission.RECORD_AUDIO
+            ) == PackageManager.PERMISSION_GRANTED
+        ) startWorkflow()
+        else askMic.launch(Manifest.permission.RECORD_AUDIO)
+    }
+
+    /* ───────── Haupt‑Ablauf ───────── */
+    private fun startWorkflow() = scope.launch {
+        try {
+            /* -------- Audio aufnehmen (5 s · 16 kHz) -------- */
+            updateUi("Recording 5 s…")
+            val minBuf = AudioRecord.getMinBufferSize(
+                REC_SR, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT
+            )
+            val rec = AudioRecord(
+                MediaRecorder.AudioSource.MIC, REC_SR,
+                AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT, minBuf
+            )
+            val pcm = ByteArrayOutputStream()
+            val buf = ByteArray(minBuf)
+
+            rec.startRecording()
+            val stopAt = System.currentTimeMillis() + 5_000
+            while (System.currentTimeMillis() < stopAt) {
+                val n = rec.read(buf, 0, buf.size)
+                if (n > 0) pcm.write(buf, 0, n)
+            }
+            rec.stop(); rec.release()
+
+            val raw = pcm.toByteArray()
+            Log.d("AUTO_FLOW", "Bytes recorded: ${raw.size}")
+            if (raw.isEmpty()) {
+                updateUi("Nichts aufgenommen!")
+                return@launch
+            }
+
+            /* -------- Senden -------- */
+            updateUi("Sending…")
+            Socket().use { sock ->
+                sock.connect(InetSocketAddress(HOST, PORT), 3_000)
+                val out = DataOutputStream(sock.getOutputStream())
+                val ins = DataInputStream(sock.getInputStream())
+
+                out.writeInt(raw.size); out.write(raw)
+                updateUi("Waiting…")
+
+                val replySize = try { ins.readInt() }
+                catch (e: SocketException) {
+                    updateUi("Connection reset")
+                    return@launch
+                }
+                if (replySize < 44) {
+                    updateUi("No audio returned")
+                    return@launch
+                }
+
+                val wav = ByteArray(replySize)
+                ins.readFully(wav)
+
+                /* -------- Playback -------- */
+                updateUi("Playing…")
+                playPcm(wav.copyOfRange(44, wav.size))
+                updateUi("Done")
+            }
+        } catch (e: Exception) {
+            val msg = "${e::class.simpleName}: ${e.message ?: "–"}"
+            updateUi("Error: $msg")
+            Log.e("AUTO_FLOW", "Workflow failed", e)
+        }
+    }
+
+    /* ---------- Wiedergabe 48 kHz mono ---------- */
+    private fun playPcm(data: ByteArray) {
+        val track = AudioTrack.Builder()
+            .setAudioAttributes(
+                AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_MEDIA)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
+                    .build()
+            )
+            .setAudioFormat(
+                AudioFormat.Builder()
+                    .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
+                    .setSampleRate(PLAY_SR)
+                    .setChannelMask(AudioFormat.CHANNEL_OUT_MONO)
+                    .build()
+            )
+            .setTransferMode(AudioTrack.MODE_STATIC)
+            .setBufferSizeInBytes(data.size)
+            .build()
+
+        track.write(data, 0, data.size)
+        track.play()
+        while (track.playState == AudioTrack.PLAYSTATE_PLAYING) Thread.sleep(40)
+        track.release()
+    }
+}
+
